@@ -65,6 +65,19 @@ function collapseMathCmd(outerView, dir, requireOnBorder, requireEmptySelection 
     };
 }
 
+function isParseError(s) {
+    if (typeof s !== "object")
+        return false;
+    let o = s;
+    if (typeof o["name"] !== "string")
+        return false;
+    if (typeof o["message"] !== "string")
+        return false;
+    if (typeof o["position"] !== "string")
+        return false;
+    return true;
+}
+
 /*---------------------------------------------------------
  *  Author: Benjamin R. Bray
  *  License: MIT (see LICENSE in project root for details)
@@ -103,7 +116,7 @@ class MathView {
         this._mathSrcElt = document.createElement("span");
         this._mathSrcElt.classList.add("math-src");
         this.dom.appendChild(this._mathSrcElt);
-        // ensure 
+        // ensure
         this.dom.addEventListener("click", () => this.ensureFocus());
         // render initial content
         this.renderMath();
@@ -196,10 +209,10 @@ class MathView {
             return;
         }
         // get tex string to render
-        let content = this._node.content.content;
+        let content = this._node.content;
         let texString = "";
-        if (content.length > 0 && content[0].textContent !== null) {
-            texString = content[0].textContent.trim();
+        if (content.firstChild !== null) {
+            texString = content.firstChild.textContent.trim();
         }
         // empty math?
         if (texString.length < 1) {
@@ -216,12 +229,12 @@ class MathView {
         }
         // render katex, but fail gracefully
         try {
-            katex__default['default'].render(texString, this._mathRenderElt, this._katexOptions);
+            katex__default["default"].render(texString, this._mathRenderElt, this._katexOptions);
             this._mathRenderElt.classList.remove("parse-error");
             this.dom.setAttribute("title", "");
         }
         catch (err) {
-            if (err instanceof katex.ParseError) {
+            if (isParseError(err)) {
                 console.error(err);
                 this._mathRenderElt.classList.add("parse-error");
                 this.dom.setAttribute("title", err.toString());
@@ -255,12 +268,12 @@ class MathView {
         }
     }
     openEditor() {
-        var _a;
+        var _a, _b;
         if (this._innerView) {
             throw Error("inner view should not exist!");
         }
         // create a nested ProseMirror view
-        this._innerView = new prosemirrorView.EditorView(this._mathSrcElt, {
+        this._innerView = new prosemirrorView.EditorView((_a = this._mathSrcElt) !== null && _a !== void 0 ? _a : null, {
             state: prosemirrorState.EditorState.create({
                 doc: this._node,
                 plugins: [prosemirrorKeymap.keymap({
@@ -304,7 +317,7 @@ class MathView {
         let innerState = this._innerView.state;
         this._innerView.focus();
         // request outer cursor position before math node was selected
-        let maybePos = (_a = this._mathPluginKey.getState(this._outerView.state)) === null || _a === void 0 ? void 0 : _a.prevCursorPos;
+        let maybePos = (_b = this._mathPluginKey.getState(this._outerView.state)) === null || _b === void 0 ? void 0 : _b.prevCursorPos;
         if (maybePos === null || maybePos === undefined) {
             console.error("[prosemirror-math] Error:  Unable to fetch math plugin state from key.");
         }
@@ -398,7 +411,7 @@ const mathPlugin = new prosemirrorState.Plugin(mathPluginSpec);
  * we define a `getAttrs` function, which, other than
  * defining node attributes, can be used to describe complex
  * match conditions for a rule.
- 
+
  * Returning `false` from `ParseRule.getAttrs` prevents the
  * rule from matching, while returning `null` indicates that
  * the default set of note attributes should be used.
@@ -444,7 +457,7 @@ function texFromMathML_01(root) {
  */
 function texFromMathML_02(root) {
     var _a;
-    let match = root.querySelector("math annotation[encoding='application/x-tex'");
+    let match = root.querySelector("math annotation[encoding='application/x-tex']");
     return ((_a = match === null || match === void 0 ? void 0 : match.textContent) !== null && _a !== void 0 ? _a : false);
 }
 function matchWikipedia(root) {
@@ -736,15 +749,16 @@ const checkSelection = (arg) => {
  */
 const mathSelectPlugin = new prosemirrorState.Plugin({
     state: {
+        // @ts-ignore
         init(config, partialState) {
             return checkSelection(partialState);
         },
+        // @ts-ignore
         apply(tr, oldState) {
             if (!tr.selection || !tr.selectionSet) {
                 return oldState;
             }
-            let sel = checkSelection(tr);
-            return sel;
+            return checkSelection(tr);
         }
     },
     props: {
@@ -760,15 +774,17 @@ const mathSelectPlugin = new prosemirrorState.Plugin({
  *
  * @param mathNodeType An instance for either your math_inline or math_display
  *     NodeType.  Must belong to the same schema that your EditorState uses!
+ * @param initialText (optional) The initial source content for the math editor.
  */
-function insertMathCmd(mathNodeType) {
+function insertMathCmd(mathNodeType, initialText = "") {
     return function (state, dispatch) {
         let { $from } = state.selection, index = $from.index();
         if (!$from.parent.canReplaceWith(index, index, mathNodeType)) {
             return false;
         }
         if (dispatch) {
-            let tr = state.tr.replaceSelectionWith(mathNodeType.create({}));
+            let mathNode = mathNodeType.create({}, initialText ? state.schema.text(initialText) : null);
+            let tr = state.tr.replaceSelectionWith(mathNode);
             tr = tr.setSelection(prosemirrorState.NodeSelection.create(tr.doc, $from.pos));
             dispatch(tr);
         }
@@ -842,6 +858,7 @@ exports.REGEX_INLINE_MATH_DOLLARS_ESCAPED = REGEX_INLINE_MATH_DOLLARS_ESCAPED;
 exports.createMathSchema = createMathSchema;
 exports.createMathView = createMathView;
 exports.insertMathCmd = insertMathCmd;
+exports.isParseError = isParseError;
 exports.makeBlockMathInputRule = makeBlockMathInputRule;
 exports.makeInlineMathInputRule = makeInlineMathInputRule;
 exports.mathBackspaceCmd = mathBackspaceCmd;
