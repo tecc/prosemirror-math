@@ -17,7 +17,7 @@
     "build": "run-s build:dist build:docs",
     "clean": "del dist; del docs",
     "serve:docs": "cd docs-src && npm run serve",
-    "prepare": "run-s clean build"
+    "prepare": "run-s clean build:dist"
   },
   "keywords": [
     "prosemirror",
