@@ -7,6 +7,7 @@
     "clean": "npx del .parcel-cache; npx del dist"
   },
   "devDependencies": {
+    "@benrbray/prosemirror-math": "file:../",
     "@types/katex": "^0.11.0",
     "@types/prosemirror-commands": "^1.0.3",
     "@types/prosemirror-gapcursor": "^1.0.3",

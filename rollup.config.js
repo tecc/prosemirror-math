@@ -15,7 +15,7 @@ export default {
     format: 'es',
     sourcemap: true,
   }],
-  plugins: [ts()],
+  plugins: [ts({ tsconfig: "tsconfig.rollup.json" })],
   external: [
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.peerDependencies || {}),

@@ -13,11 +13,11 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build:dist": "rollup -c",
-    "build:docs": "cd docs-src && npm run build",
-    "build": "npm run build:dist; npm run build:docs",
-    "clean": "npx del dist; npx del docs",
+    "build:docs": "cd docs-src && run-s build",
+    "build": "run-s build:dist build:docs",
+    "clean": "del dist; del docs",
     "serve:docs": "cd docs-src && npm run serve",
-    "prepare": "npm run clean; npm run build"
+    "prepare": "run-s clean build"
   },
   "keywords": [
     "prosemirror",
@@ -41,21 +41,22 @@
     "prosemirror-view": "^1.18.2"
   },
   "devDependencies": {
-    "@types/katex": "^0.11.0",
-    "@types/prosemirror-commands": "^1.0.3",
-    "@types/prosemirror-gapcursor": "^1.0.3",
-    "@types/prosemirror-history": "^1.0.1",
-    "@types/prosemirror-inputrules": "^1.0.2",
-    "@types/prosemirror-keymap": "^1.0.3",
-    "@types/prosemirror-model": "^1.13.0",
-    "@types/prosemirror-schema-basic": "^1.0.1",
-    "@types/prosemirror-schema-list": "^1.0.3",
-    "@types/prosemirror-state": "^1.2.5",
-    "@types/prosemirror-transform": "^1.1.1",
-    "@types/prosemirror-view": "^1.15.0",
-    "del-cli": "^3.0.1",
+    "@types/katex": "^0.16.0",
+    "del-cli": "^5.0.0",
+    "npm-run-all": "^4.1.5",
+    "prosemirror-commands": "^1.5.0",
+    "prosemirror-gapcursor": "^1.0.3",
+    "prosemirror-history": "^1.0.1",
+    "prosemirror-inputrules": "^1.0.2",
+    "prosemirror-keymap": "^1.0.3",
+    "prosemirror-model": "^1.13.0",
+    "prosemirror-schema-basic": "^1.0.1",
+    "prosemirror-schema-list": "^1.0.3",
+    "prosemirror-state": "^1.2.5",
+    "prosemirror-transform": "^1.1.1",
+    "prosemirror-view": "^1.15.0",
     "rollup": "^2.42.4",
-    "rollup-plugin-ts": "^1.4.0",
+    "rollup-plugin-ts": "^3.2.0",
     "typescript": "^4.2.3"
   }
 }
