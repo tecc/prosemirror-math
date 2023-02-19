@@ -4,9 +4,9 @@
  *--------------------------------------------------------*/
 
 // prosemirror imports
-import { EditorState, Transaction, Selection as ProseSelection, Plugin as ProsePlugin } from "prosemirror-state";
-import { DecorationSet, Decoration } from "prosemirror-view";
-import { Fragment, Node as ProseNode } from "prosemirror-model";
+import {EditorState, Plugin as ProsePlugin, Selection as ProseSelection, Transaction} from "prosemirror-state";
+import {Decoration, DecorationSet} from "prosemirror-view";
+import {Fragment, Node as ProseNode} from "prosemirror-model";
 
 ////////////////////////////////////////////////////////////
 
@@ -16,13 +16,13 @@ import { Fragment, Node as ProseNode } from "prosemirror-model";
  * @param arg Should be either a Transaction or an EditorState,
  *     although any object with `selection` and `doc` will work.
  */
-const checkSelection = (arg:{ selection:ProseSelection, doc:ProseNode }) => {
+const checkSelection = (arg: { selection: ProseSelection, doc: ProseNode }) => {
 	let { from, to } = arg.selection;
 	let content: Fragment = arg.selection.content().content;
 
 	let result: { start: number, end: number }[] = [];
 
-	content.descendants((node: ProseNode, pos: number, parent: ProseNode) => {
+	content.descendants((node: ProseNode, pos: number, parent: ProseNode | null) => {
 		if (node.type.name == "text") { return false; }
 		if (node.type.name.startsWith("math_")) {
 			result.push({
@@ -36,7 +36,7 @@ const checkSelection = (arg:{ selection:ProseSelection, doc:ProseNode }) => {
 
 	return DecorationSet.create(arg.doc, result.map(
 		({start, end}) => Decoration.node(start, end, { class: "math-select" })
-	))
+	));
 }
 
 /**
@@ -44,20 +44,21 @@ const checkSelection = (arg:{ selection:ProseSelection, doc:ProseNode }) => {
  * math will put a box around each individual character of a
  * math expression.  This plugin attempts to make math selections
  * slightly prettier by instead setting a background color on the node.
- * 
+ *
  * (remember to use the included math.css!)
- * 
+ *
  * @todo (6/13/20) math selection rectangles are not quite even with text
  */
 export const mathSelectPlugin: ProsePlugin = new ProsePlugin({
 	state: {
+		// @ts-ignore
 		init(config: Object, partialState: EditorState) {
 			return checkSelection(partialState);
 		},
+		// @ts-ignore
 		apply(tr:Transaction, oldState: EditorState) {
 			if (!tr.selection || !tr.selectionSet) { return oldState; }
-			let sel = checkSelection(tr);
-			return sel;
+			return checkSelection(tr);
 		}
 	},
 	props: {

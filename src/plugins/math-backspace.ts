@@ -1,12 +1,12 @@
 import { NodeSelection } from "prosemirror-state";
-import { Command as ProseCommand } from "prosemirror-commands";
+import type { Command as ProseCommand } from "prosemirror-state";
 
 export const mathBackspaceCmd:ProseCommand = (state, dispatch) => {
 	// check node before
 	let { $from } = state.selection;
 	let nodeBefore = $from.nodeBefore;
 	if(!nodeBefore){ return false; }
-	
+
 	if(nodeBefore.type.name == "math_inline"){
 		// select math node
 		let index = $from.index($from.depth);

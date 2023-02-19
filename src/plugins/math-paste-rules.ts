@@ -2,14 +2,15 @@
  * Note that for some of the `ParseRule`s defined below,
  * we define a `getAttrs` function, which, other than
  * defining node attributes, can be used to describe complex
- * match conditions for a rule.  
- 
+ * match conditions for a rule.
+
  * Returning `false` from `ParseRule.getAttrs` prevents the
  * rule from matching, while returning `null` indicates that
  * the default set of note attributes should be used.
  */
 
-import { Node as ProseNode, Fragment, ParseRule, Schema, NodeType } from "prosemirror-model";
+import type { Node as ProseNode, ParseRule, Schema } from "prosemirror-model";
+import { Fragment } from "prosemirror-model";
 
 ////////////////////////////////////////////////////////////
 
@@ -21,8 +22,8 @@ function getFirstMatch(root: Element, rules: ((root:Element) => false|string)[])
 	return false;
 }
 
-function makeTextFragment<S extends Schema<any, any>>(text: string, schema: S): Fragment<S> {
-	return Fragment.from(schema.text(text) as ProseNode<S>);
+function makeTextFragment(text: string, schema: Schema): Fragment {
+	return Fragment.from(schema.text(text) as ProseNode);
 }
 
 ////////////////////////////////////////////////////////////
@@ -54,7 +55,7 @@ function texFromMathML_01(root: Element): false|string {
  * <math xmlns="http://www.w3.org/1998/Math/MathML" alttext="...">
  */
 function texFromMathML_02(root: Element): false|string {
-	let match = root.querySelector("math annotation[encoding='application/x-tex'");
+	let match = root.querySelector("math annotation[encoding='application/x-tex']");
 	return (match?.textContent ?? false);
 }
 
@@ -69,8 +70,8 @@ function texFromScriptTag(root: Element): false|string {
 
 function matchWikipedia(root: Element): false|string {
 	let match: false|string = getFirstMatch(root, [
-		texFromMediaWikiFallbackImage, 
-		texFromMathML_01, 
+		texFromMediaWikiFallbackImage,
+		texFromMathML_01,
 		texFromMathML_02
 	]);
 	// TODO: if no tex string was found, but we have MathML, try to parse it
@@ -79,10 +80,10 @@ function matchWikipedia(root: Element): false|string {
 
 /**
  * Wikipedia formats block math inside a <dl>...</dl> element, as below.
- * 
+ *
  *   - Evidently no CSS class is used to distinguish inline vs block math
  *   - Sometimes the `\displaystyle` TeX command is present even in inline math
- * 
+ *
  * ```html
  * <dl><dd><span class="mwe-math-element">
  *     <span class="mwe-math-mathml-inline mwe-math-mathml-ally" style="...">
@@ -99,7 +100,7 @@ function matchWikipedia(root: Element): false|string {
  * </span></dd></dl>
  * ```
  */
-export const wikipediaBlockMathParseRule: ParseRule = { 
+export const wikipediaBlockMathParseRule: ParseRule = {
 	tag: "dl",
 	getAttrs(p: Node|string):false|null {
 		let dl = p as HTMLDListElement;
@@ -107,8 +108,8 @@ export const wikipediaBlockMathParseRule: ParseRule = {
 		// <dl> must contain exactly one child
 		if(dl.childElementCount !== 1) { return false; }
 		let dd = dl.firstChild as Element;
-		if(dd.tagName !== "DD") { return false; } 
-		
+		if(dd.tagName !== "DD") { return false; }
+
 		// <dd> must contain exactly one child
 		if(dd.childElementCount !== 1) { return false; }
 		let mweElt = dd.firstChild as Element;
@@ -117,7 +118,7 @@ export const wikipediaBlockMathParseRule: ParseRule = {
 		// success!  proceed to `getContent` for further processing
 		return null;
 	},
-	getContent<S extends Schema<any, any>>(p: Node, schema: S): Fragment<S> {
+	getContent(p: Node, schema: Schema): Fragment {
 		// search the matched element for a TeX string
 		let match: false|string = matchWikipedia(p as Element);
 		// return a fragment representing the math node's children
@@ -153,7 +154,7 @@ export const wikipediaInlineMathParseRule: ParseRule = {
 		// success!  proceed to `getContent` for further processing
 		return null;
 	},
-	getContent<S extends Schema<any, any>>(p: Node, schema: S): Fragment<S> {
+	getContent(p: Node, schema: Schema): Fragment {
 		// search the matched element for a TeX string
 		let match: false|string = matchWikipedia(p as Element);
 		// return a fragment representing the math node's children

@@ -5,17 +5,19 @@
 
 // prosemirror imports
 import { Node as ProseNode } from "prosemirror-model";
-import { EditorState, Transaction, TextSelection, NodeSelection, PluginKey } from "prosemirror-state";
+import type { Transaction, PluginKey, Command } from "prosemirror-state";
+import { EditorState, TextSelection, NodeSelection } from "prosemirror-state";
 import { NodeView, EditorView, Decoration } from "prosemirror-view";
 import { StepMap } from "prosemirror-transform";
 import { keymap } from "prosemirror-keymap";
-import { newlineInCode, chainCommands, deleteSelection, liftEmptyBlock, Command } from "prosemirror-commands";
+import { newlineInCode, chainCommands, deleteSelection, liftEmptyBlock } from "prosemirror-commands";
 
 // katex
-import katex, { ParseError, KatexOptions } from "katex";
+import katex, { type ParseError, type KatexOptions } from "katex";
 import { nudgeCursorBackCmd, nudgeCursorForwardCmd } from "./commands/move-cursor-cmd";
 import { collapseMathCmd } from "./commands/collapse-math-cmd";
 import { IMathPluginState } from "./math-plugin";
+import {isParseError} from "./utils/types";
 
 //// INLINE MATH NODEVIEW //////////////////////////////////
 
@@ -57,9 +59,9 @@ export class MathView implements NodeView, ICursorPosObserver {
 	// == Lifecycle ===================================== //
 
 	/**
-	 * @param onDestroy Callback for when this NodeView is destroyed.  
+	 * @param onDestroy Callback for when this NodeView is destroyed.
 	 *     This NodeView should unregister itself from the list of ICursorPosObservers.
-	 * 
+	 *
 	 * Math Views support the following options:
 	 * @option displayMode If TRUE, will render math in display mode, otherwise in inline mode.
 	 * @option tagName HTML tag name to use for this NodeView.  If none is provided,
@@ -67,9 +69,9 @@ export class MathView implements NodeView, ICursorPosObserver {
 	 */
 	constructor(
 		node: ProseNode,
-		view: EditorView, 
-		getPos: (() => number), 
-		options: IMathViewOptions = {}, 
+		view: EditorView,
+		getPos: (() => number),
+		options: IMathViewOptions = {},
 		mathPluginKey: PluginKey<IMathPluginState>,
 		onDestroy?: (() => void)
 	) {
@@ -101,7 +103,7 @@ export class MathView implements NodeView, ICursorPosObserver {
 		this._mathSrcElt.classList.add("math-src");
 		this.dom.appendChild(this._mathSrcElt);
 
-		// ensure 
+		// ensure
 		this.dom.addEventListener("click", () => this.ensureFocus());
 
 		// render initial content
@@ -121,7 +123,7 @@ export class MathView implements NodeView, ICursorPosObserver {
 			this._mathSrcElt.remove();
 			delete this._mathSrcElt;
 		}
-		
+
 		this.dom.remove();
 	}
 
@@ -137,7 +139,7 @@ export class MathView implements NodeView, ICursorPosObserver {
 
 	// == Updates ======================================= //
 
-	update(node: ProseNode, decorations: Decoration[]) {
+	update(node: ProseNode, decorations: readonly Decoration[]) {
 		if (!node.sameMarkup(this._node)) return false
 		this._node = node;
 
@@ -205,10 +207,10 @@ export class MathView implements NodeView, ICursorPosObserver {
 		if (!this._mathRenderElt) { return; }
 
 		// get tex string to render
-		let content = this._node.content.content;
+		let content = this._node.content;
 		let texString = "";
-		if (content.length > 0 && content[0].textContent !== null) {
-			texString = content[0].textContent.trim();
+		if (content.firstChild !== null) {
+			texString = content.firstChild.textContent.trim();
 		}
 
 		// empty math?
@@ -228,7 +230,7 @@ export class MathView implements NodeView, ICursorPosObserver {
 			this._mathRenderElt.classList.remove("parse-error");
 			this.dom.setAttribute("title", "");
 		} catch (err) {
-			if (err instanceof ParseError) {
+			if (isParseError(err)) {
 				console.error(err);
 				this._mathRenderElt.classList.add("parse-error");
 				this.dom.setAttribute("title", err.toString());
@@ -263,7 +265,7 @@ export class MathView implements NodeView, ICursorPosObserver {
 		if (this._innerView) { throw Error("inner view should not exist!"); }
 
 		// create a nested ProseMirror view
-		this._innerView = new EditorView(this._mathSrcElt, {
+		this._innerView = new EditorView(this._mathSrcElt ?? null, {
 			state: EditorState.create({
 				doc: this._node,
 				plugins: [keymap({
@@ -308,7 +310,7 @@ export class MathView implements NodeView, ICursorPosObserver {
 			console.error("[prosemirror-math] Error:  Unable to fetch math plugin state from key.");
 		}
 		let prevCursorPos: number = maybePos ?? 0;
-		
+
 		// compute position that cursor should appear within the expanded math node
 		let innerPos = (prevCursorPos <= this._getPos()) ? 0 : this._node.nodeSize - 2;
 		this._innerView.dispatch(
@@ -322,7 +324,7 @@ export class MathView implements NodeView, ICursorPosObserver {
 
 	/**
 	 * Called when the inner ProseMirror editor should close.
-	 * 
+	 *
 	 * @param render Optionally update the rendered math after closing. (which
 	 *    is generally what we want to do, since the user is done editing!)
 	 */

@@ -1,8 +1,8 @@
 // (https://stackoverflow.com/a/53098695/1444650)
-// import needed to make this a module 
-import { Fragment, Node as ProseNode } from "prosemirror-model";
-import { EditorState, Transaction } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+// import needed to make this a module
+import type { Fragment, Node as ProseNode, Mark } from "prosemirror-model";
+import type { EditorState, Transaction } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 
 declare module "prosemirror-model" {
 	interface Fragment {
@@ -13,7 +13,7 @@ declare module "prosemirror-model" {
 
 	interface NodeType {
 		hasRequiredAttrs(): boolean;
-		createAndFill(attrs?:Object, content?: Fragment|ProseNode|ProseNode[], marks?:Mark[]): ProseNode;
+		createAndFill(attrs?:Object, content?: Fragment|ProseNode|ProseNode[], marks?: Mark[]): ProseNode;
 	}
 
 	interface ResolvedPos {

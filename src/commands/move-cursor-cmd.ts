@@ -1,5 +1,5 @@
-import { Command } from "prosemirror-commands";
-import { EditorState, TextSelection, Transaction } from "prosemirror-state";
+import type { EditorState, Transaction, Command } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
 
 ////////////////////////////////////////////////////////////////////////////////
 

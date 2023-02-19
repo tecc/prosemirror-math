@@ -13,7 +13,7 @@ import { SchemaSpecMarkT, SchemaSpecNodeT } from "./utils/types";
 /**
  * Borrowed from ProseMirror typings, modified to exclude OrderedMaps in spec,
  * in order to help with the schema-building functions below.
- * 
+ *
  * NOTE:  TypeScript's typings for the spread operator { ...a, ...b } are only
  * an approximation to the true type, and have difficulty with optional fields.
  * So, unlike the SchemaSpec type, the `marks` field is NOT optional here.
@@ -21,13 +21,13 @@ import { SchemaSpecMarkT, SchemaSpecNodeT } from "./utils/types";
  * function example<T extends string>(x: { [name in T]: string; } | null) {
  *     const s = { ...x }; // inferred to have type `{}`.
  * }
- * 
+ *
  * @see https://github.com/microsoft/TypeScript/issues/10727
  */
 interface SchemaSpecJson<N extends string = any, M extends string = any> extends SchemaSpec<N,M> {
     nodes: { [name in N]: NodeSpec };
     marks: { [name in M]: MarkSpec };
-    topNode?: string | null;
+    topNode?: string | undefined;
 }
 
 type MathSpecNodeT = SchemaSpecNodeT<typeof mathSchemaSpec>;

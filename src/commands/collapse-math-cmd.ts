@@ -1,7 +1,6 @@
-import { Command } from "prosemirror-commands";
-import { EditorState, TextSelection, Transaction } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
-
+import type { EditorState, Transaction, Command } from "prosemirror-state";
+import { TextSelection } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 /**
  * A ProseMirror command for determining whether to exit a math block, based on
  * specific conditions.  Normally called when the user has 

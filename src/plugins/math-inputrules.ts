@@ -4,7 +4,7 @@
  *--------------------------------------------------------*/
 
 import { InputRule } from "prosemirror-inputrules";
-import { NodeType } from "prosemirror-model";
+import type { NodeType } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 
 ////////////////////////////////////////////////////////////
